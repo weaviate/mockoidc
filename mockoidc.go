@@ -34,6 +34,7 @@ type MockOIDC struct {
 	UserQueue    *UserQueue
 	ErrorQueue   *ErrorQueue
 
+	Hostname    string
 	tlsConfig   *tls.Config
 	middleware  []func(http.Handler) http.Handler
 	fastForward time.Duration
@@ -124,7 +125,12 @@ func (m *MockOIDC) Start(ln net.Listener, cfg *tls.Config) error {
 	m.tlsConfig = cfg
 
 	go func() {
-		err := m.Server.Serve(ln)
+		var err error
+		if m.tlsConfig != nil {
+			err = m.Server.ServeTLS(ln, "", "")
+		} else {
+			err = m.Server.Serve(ln)
+		}
 		if err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}
@@ -202,7 +208,11 @@ func (m *MockOIDC) Addr() string {
 	if m.tlsConfig != nil {
 		proto = "https"
 	}
-	return fmt.Sprintf("%s://%s", proto, m.Server.Addr)
+	addr := m.Server.Addr
+	if m.Hostname != "" {
+		addr = m.Hostname
+	}
+	return fmt.Sprintf("%s://%s", proto, addr)
 }
 
 // Issuer returns the OIDC Issuer that will be in `iss` token claims
