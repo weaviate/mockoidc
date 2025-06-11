@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oauth2-proxy/mockoidc"
 	"github.com/stretchr/testify/assert"
+	"github.com/weaviate/mockoidc"
 )
 
 func TestMockOIDC_Authorize(t *testing.T) {
